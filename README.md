@@ -34,3 +34,24 @@ A Python implementation of Smart Home System APIs for managing users, houses, ro
 ## Testing
 
 Run the test suite:
+```bash
+python -m unittest discover tests/
+```
+
+## Setup
+
+1. Clone the repository
+2. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+## GitHub Actions
+
+The project includes automated CI pipeline that:
+- Runs on multiple Python versions
+- Performs code linting
+- Executes unit tests
+
+## Author
+Akhil Bongu
