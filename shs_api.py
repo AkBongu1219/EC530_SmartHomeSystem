@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from datetime import datetime
 import uuid
 
-# Add these exception classes at the top of the file
+# Base exception hierarchy for the system
 class SmartHomeError(Exception):
     """Base exception class for Smart Home System"""
     pass
@@ -25,12 +25,15 @@ class DeviceError(SmartHomeError):
     """Exceptions for device-related operations"""
     pass
 
+# System enums for type safety
 class UserPrivilege(Enum):
+    """Defines user access levels in the system"""
     ADMIN = "admin"
     REGULAR = "regular"
     KID = "kid"
 
 class RoomType(Enum):
+    """Defines available room types"""
     BEDROOM = "bedroom"
     BATHROOM = "bathroom" 
     KITCHEN = "kitchen"
@@ -38,6 +41,7 @@ class RoomType(Enum):
     OTHER = "other"
 
 class DeviceType(Enum):
+    """Defines supported device types"""
     LIGHT = "light"
     THERMOSTAT = "thermostat"
     CAMERA = "camera"
@@ -45,13 +49,16 @@ class DeviceType(Enum):
     SENSOR = "sensor"
     OTHER = "other"
 
+# Core data structures
 @dataclass
 class Location:
+    """Geographic location data"""
     latitude: float
     longitude: float
 
 @dataclass 
 class User:
+    """User data structure with authentication and contact info"""
     id: str
     name: str
     username: str
@@ -60,6 +67,7 @@ class User:
     privilege: UserPrivilege
     
     def __init__(self, name: str, username: str, phone_number: str, email: str, privilege: UserPrivilege):
+        # Generate unique ID for new user
         self.id = str(uuid.uuid4())
         self.name = name
         self.username = username
@@ -68,13 +76,16 @@ class User:
         self.privilege = privilege
 
     def is_admin(self) -> bool:
+        # Check if user has admin privileges
         return self.privilege == UserPrivilege.ADMIN
 
     def is_kid(self) -> bool:
+        # Check if user has kid privileges
         return self.privilege == UserPrivilege.KID
 
 @dataclass
 class House:
+    """House data structure with location and occupancy info"""
     id: str
     name: str
     address: str
@@ -83,6 +94,7 @@ class House:
     occupant_count: int
 
     def __init__(self, name: str, address: str, location: Location, owner_ids: List[str], occupant_count: int):
+        # Generate unique ID for new house
         self.id = str(uuid.uuid4())
         self.name = name
         self.address = address
@@ -128,10 +140,12 @@ class Device:
         self.last_data = {}
         self.last_updated = datetime.now()
 
-# API Stubs
+# API implementations
 class UserAPI:
+    """Handles user management operations"""
     @staticmethod
     def create_user(name: str, username: str, phone: str, email: str, privilege: UserPrivilege) -> User:
+        # Validate required fields
         if not name or not username or not phone or not email:
             raise UserError("All user fields (name, username, phone, email) are required")
         if not isinstance(privilege, UserPrivilege):
@@ -140,6 +154,7 @@ class UserAPI:
 
     @staticmethod
     def get_user(user_id: str) -> Optional[User]:
+        # Validate user ID
         if not user_id:
             raise UserError("User ID cannot be empty")
         # TODO: Implement database lookup
@@ -158,8 +173,10 @@ class UserAPI:
         pass
 
 class HouseAPI:
+    """Handles house management operations"""
     @staticmethod
     def create_house(name: str, address: str, location: Location, owner_ids: List[str], occupant_count: int) -> House:
+        # Validate house creation parameters
         if not name or not address:
             raise HouseError("House name and address are required")
         if not isinstance(location, Location):
@@ -219,8 +236,10 @@ class RoomAPI:
         pass
 
 class DeviceAPI:
+    """Handles device management operations"""
     @staticmethod
     def create_device(type: DeviceType, name: str, room_id: str) -> Device:
+        # Validate device creation parameters
         if not name or not room_id:
             raise DeviceError("Device name and room ID are required")
         if not isinstance(type, DeviceType):
@@ -249,6 +268,7 @@ class DeviceAPI:
 
     @staticmethod
     def update_device_settings(device_id: str, settings: Dict) -> bool:
+        # Validate settings update parameters
         if not device_id:
             raise DeviceError("Device ID cannot be empty")
         if not isinstance(settings, dict):
@@ -258,6 +278,7 @@ class DeviceAPI:
 
     @staticmethod
     def update_device_status(device_id: str, status: bool) -> bool:
+        # Validate status update parameters
         if not device_id:
             raise DeviceError("Device ID cannot be empty")
         if not isinstance(status, bool):

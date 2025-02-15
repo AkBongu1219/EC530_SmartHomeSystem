@@ -1,6 +1,9 @@
+# Import required testing modules
 import unittest
 from unittest.mock import patch, MagicMock
 from datetime import datetime
+
+# Import all components from the main API
 from shs_api import (
     UserAPI, HouseAPI, RoomAPI, DeviceAPI,
     User, House, Room, Device,
@@ -9,7 +12,10 @@ from shs_api import (
 )
 
 class TestUserAPI(unittest.TestCase):
+    """Test suite for UserAPI operations"""
+    
     def setUp(self):
+        # Initialize test data for user operations
         self.test_user_data = {
             "name": "John Doe",
             "username": "johndoe",
@@ -19,6 +25,7 @@ class TestUserAPI(unittest.TestCase):
         }
         
     def test_create_user(self):
+        # Test successful user creation
         create_user_params = {
             "name": self.test_user_data["name"],
             "username": self.test_user_data["username"],
@@ -33,6 +40,7 @@ class TestUserAPI(unittest.TestCase):
         
     @patch('shs_api.UserAPI.get_user')
     def test_get_user(self, mock_get):
+        # Test user retrieval with mocked database
         user_init_data = {
             "name": self.test_user_data["name"],
             "username": self.test_user_data["username"],
@@ -43,9 +51,11 @@ class TestUserAPI(unittest.TestCase):
         mock_user = User(**user_init_data)
         mock_get.return_value = mock_user
         
+        # Test successful retrieval
         result = UserAPI.get_user("test-id")
         self.assertEqual(result, mock_user)
         
+        # Test non-existent user
         mock_get.return_value = None
         result = UserAPI.get_user("non-existent-id")
         self.assertIsNone(result)
@@ -75,6 +85,7 @@ class TestUserAPI(unittest.TestCase):
         mock_delete.assert_called_once_with("test-id")
 
     def test_create_user_validation(self):
+        # Test validation errors for user creation
         with self.assertRaises(UserError):
             UserAPI.create_user("", "username", "phone", "email", UserPrivilege.REGULAR)
         with self.assertRaises(UserError):
@@ -87,7 +98,10 @@ class TestUserAPI(unittest.TestCase):
             UserAPI.create_user("name", "username", "phone", "email", "invalid_privilege")
 
 class TestHouseAPI(unittest.TestCase):
+    """Test suite for HouseAPI operations"""
+    
     def setUp(self):
+        # Initialize test data for house operations
         self.test_location = Location(latitude=40.7128, longitude=-74.0060)
         self.test_house_data = {
             "name": "Test House",
@@ -98,6 +112,7 @@ class TestHouseAPI(unittest.TestCase):
         }
         
     def test_create_house(self):
+        # Test successful house creation
         house = HouseAPI.create_house(**self.test_house_data)
         self.assertIsInstance(house, House)
         self.assertEqual(house.name, self.test_house_data["name"])
@@ -129,6 +144,7 @@ class TestHouseAPI(unittest.TestCase):
         mock_delete.assert_called_once_with("test-id")
 
     def test_create_house_validation(self):
+        # Test validation errors for house creation
         with self.assertRaises(HouseError):
             HouseAPI.create_house("", "address", self.test_location, ["owner1"], 4)
         with self.assertRaises(HouseError):
@@ -141,7 +157,10 @@ class TestHouseAPI(unittest.TestCase):
             HouseAPI.create_house("name", "address", self.test_location, ["owner1"], 0)
 
 class TestRoomAPI(unittest.TestCase):
+    """Test suite for RoomAPI operations"""
+    
     def setUp(self):
+        # Initialize test data for room operations
         self.test_room_data = {
             "name": "Master Bedroom",
             "floor": 2,
@@ -151,6 +170,7 @@ class TestRoomAPI(unittest.TestCase):
         }
         
     def test_create_room(self):
+        # Test successful room creation
         room = RoomAPI.create_room(**self.test_room_data)
         self.assertIsInstance(room, Room)
         self.assertEqual(room.name, self.test_room_data["name"])
@@ -194,6 +214,7 @@ class TestRoomAPI(unittest.TestCase):
         mock_delete.assert_called_once_with("test-id")
 
     def test_create_room_validation(self):
+        # Test validation errors for room creation
         with self.assertRaises(RoomError):
             RoomAPI.create_room("", 2, 30.5, "house_id", RoomType.BEDROOM)
         with self.assertRaises(RoomError):
@@ -206,7 +227,10 @@ class TestRoomAPI(unittest.TestCase):
             RoomAPI.create_room("name", 2, 30.5, "house_id", "invalid_type")
 
 class TestDeviceAPI(unittest.TestCase):
+    """Test suite for DeviceAPI operations"""
+    
     def setUp(self):
+        # Initialize test data for device operations
         self.test_device_data = {
             "type": DeviceType.LIGHT,
             "name": "Living Room Light",
@@ -214,6 +238,7 @@ class TestDeviceAPI(unittest.TestCase):
         }
         
     def test_create_device(self):
+        # Test successful device creation
         device = DeviceAPI.create_device(**self.test_device_data)
         self.assertIsInstance(device, Device)
         self.assertEqual(device.name, self.test_device_data["name"])
@@ -276,6 +301,7 @@ class TestDeviceAPI(unittest.TestCase):
         mock_delete.assert_called_once_with("test-id")
 
     def test_create_device_validation(self):
+        # Test validation errors for device creation
         with self.assertRaises(DeviceError):
             DeviceAPI.create_device(DeviceType.LIGHT, "", "room_id")
         with self.assertRaises(DeviceError):
@@ -284,12 +310,14 @@ class TestDeviceAPI(unittest.TestCase):
             DeviceAPI.create_device("invalid_type", "name", "room_id")
 
     def test_update_device_settings_validation(self):
+        # Test validation errors for device settings updates
         with self.assertRaises(DeviceError):
             DeviceAPI.update_device_settings("", {"brightness": 80})
         with self.assertRaises(DeviceError):
             DeviceAPI.update_device_settings("device_id", "invalid_settings")
 
     def test_update_device_status_validation(self):
+        # Test validation errors for device status updates
         with self.assertRaises(DeviceError):
             DeviceAPI.update_device_status("", True)
         with self.assertRaises(DeviceError):
