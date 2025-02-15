@@ -36,9 +36,6 @@ python -m unittest discover tests/
 - `tests/tests_shs_api.py`: Unit tests
 - `.github/workflows/python-app.yml`: CI configuration
 
-## GitHub Repository
-[EC530_SmartHomeSystem](https://github.com/AkBongu1219/EC530_SmartHomeSystem)
-
 ## Author
 Akhil Bongu
 ```
