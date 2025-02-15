@@ -4,7 +4,8 @@ from datetime import datetime
 from shs_api import (
     UserAPI, HouseAPI, RoomAPI, DeviceAPI,
     User, House, Room, Device,
-    UserPrivilege, RoomType, DeviceType, Location
+    UserPrivilege, RoomType, DeviceType, Location,
+    SmartHomeError, UserError, HouseError, RoomError, DeviceError
 )
 
 class TestUserAPI(unittest.TestCase):
@@ -73,6 +74,18 @@ class TestUserAPI(unittest.TestCase):
         self.assertTrue(result)
         mock_delete.assert_called_once_with("test-id")
 
+    def test_create_user_validation(self):
+        with self.assertRaises(UserError):
+            UserAPI.create_user("", "username", "phone", "email", UserPrivilege.REGULAR)
+        with self.assertRaises(UserError):
+            UserAPI.create_user("name", "", "phone", "email", UserPrivilege.REGULAR)
+        with self.assertRaises(UserError):
+            UserAPI.create_user("name", "username", "", "email", UserPrivilege.REGULAR)
+        with self.assertRaises(UserError):
+            UserAPI.create_user("name", "username", "phone", "", UserPrivilege.REGULAR)
+        with self.assertRaises(UserError):
+            UserAPI.create_user("name", "username", "phone", "email", "invalid_privilege")
+
 class TestHouseAPI(unittest.TestCase):
     def setUp(self):
         self.test_location = Location(latitude=40.7128, longitude=-74.0060)
@@ -114,6 +127,18 @@ class TestHouseAPI(unittest.TestCase):
         result = HouseAPI.delete_house("test-id")
         self.assertTrue(result)
         mock_delete.assert_called_once_with("test-id")
+
+    def test_create_house_validation(self):
+        with self.assertRaises(HouseError):
+            HouseAPI.create_house("", "address", self.test_location, ["owner1"], 4)
+        with self.assertRaises(HouseError):
+            HouseAPI.create_house("name", "", self.test_location, ["owner1"], 4)
+        with self.assertRaises(HouseError):
+            HouseAPI.create_house("name", "address", "invalid_location", ["owner1"], 4)
+        with self.assertRaises(HouseError):
+            HouseAPI.create_house("name", "address", self.test_location, [], 4)
+        with self.assertRaises(HouseError):
+            HouseAPI.create_house("name", "address", self.test_location, ["owner1"], 0)
 
 class TestRoomAPI(unittest.TestCase):
     def setUp(self):
@@ -167,6 +192,18 @@ class TestRoomAPI(unittest.TestCase):
         result = RoomAPI.delete_room("test-id")
         self.assertTrue(result)
         mock_delete.assert_called_once_with("test-id")
+
+    def test_create_room_validation(self):
+        with self.assertRaises(RoomError):
+            RoomAPI.create_room("", 2, 30.5, "house_id", RoomType.BEDROOM)
+        with self.assertRaises(RoomError):
+            RoomAPI.create_room("name", -1, 30.5, "house_id", RoomType.BEDROOM)
+        with self.assertRaises(RoomError):
+            RoomAPI.create_room("name", 2, 0, "house_id", RoomType.BEDROOM)
+        with self.assertRaises(RoomError):
+            RoomAPI.create_room("name", 2, 30.5, "", RoomType.BEDROOM)
+        with self.assertRaises(RoomError):
+            RoomAPI.create_room("name", 2, 30.5, "house_id", "invalid_type")
 
 class TestDeviceAPI(unittest.TestCase):
     def setUp(self):
@@ -237,6 +274,26 @@ class TestDeviceAPI(unittest.TestCase):
         result = DeviceAPI.delete_device("test-id")
         self.assertTrue(result)
         mock_delete.assert_called_once_with("test-id")
+
+    def test_create_device_validation(self):
+        with self.assertRaises(DeviceError):
+            DeviceAPI.create_device(DeviceType.LIGHT, "", "room_id")
+        with self.assertRaises(DeviceError):
+            DeviceAPI.create_device(DeviceType.LIGHT, "name", "")
+        with self.assertRaises(DeviceError):
+            DeviceAPI.create_device("invalid_type", "name", "room_id")
+
+    def test_update_device_settings_validation(self):
+        with self.assertRaises(DeviceError):
+            DeviceAPI.update_device_settings("", {"brightness": 80})
+        with self.assertRaises(DeviceError):
+            DeviceAPI.update_device_settings("device_id", "invalid_settings")
+
+    def test_update_device_status_validation(self):
+        with self.assertRaises(DeviceError):
+            DeviceAPI.update_device_status("", True)
+        with self.assertRaises(DeviceError):
+            DeviceAPI.update_device_status("device_id", "invalid_status")
 
 if __name__ == '__main__':
     unittest.main()

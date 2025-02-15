@@ -4,6 +4,27 @@ from dataclasses import dataclass
 from datetime import datetime
 import uuid
 
+# Add these exception classes at the top of the file
+class SmartHomeError(Exception):
+    """Base exception class for Smart Home System"""
+    pass
+
+class UserError(SmartHomeError):
+    """Exceptions for user-related operations"""
+    pass
+
+class HouseError(SmartHomeError):
+    """Exceptions for house-related operations"""
+    pass
+
+class RoomError(SmartHomeError):
+    """Exceptions for room-related operations"""
+    pass
+
+class DeviceError(SmartHomeError):
+    """Exceptions for device-related operations"""
+    pass
+
 class UserPrivilege(Enum):
     ADMIN = "admin"
     REGULAR = "regular"
@@ -111,15 +132,23 @@ class Device:
 class UserAPI:
     @staticmethod
     def create_user(name: str, username: str, phone: str, email: str, privilege: UserPrivilege) -> User:
+        if not name or not username or not phone or not email:
+            raise UserError("All user fields (name, username, phone, email) are required")
+        if not isinstance(privilege, UserPrivilege):
+            raise UserError(f"Invalid privilege type: {privilege}")
         return User(name, username, phone, email, privilege)
 
     @staticmethod
     def get_user(user_id: str) -> Optional[User]:
+        if not user_id:
+            raise UserError("User ID cannot be empty")
         # TODO: Implement database lookup
         pass
 
     @staticmethod
     def update_user(user: User) -> bool:
+        if not isinstance(user, User):
+            raise UserError("Invalid user object")
         # TODO: Implement database update
         pass
 
@@ -131,6 +160,14 @@ class UserAPI:
 class HouseAPI:
     @staticmethod
     def create_house(name: str, address: str, location: Location, owner_ids: List[str], occupant_count: int) -> House:
+        if not name or not address:
+            raise HouseError("House name and address are required")
+        if not isinstance(location, Location):
+            raise HouseError("Invalid location object")
+        if not owner_ids:
+            raise HouseError("At least one owner ID is required")
+        if occupant_count < 1:
+            raise HouseError("Occupant count must be positive")
         return House(name, address, location, owner_ids, occupant_count)
 
     @staticmethod
@@ -151,6 +188,14 @@ class HouseAPI:
 class RoomAPI:
     @staticmethod
     def create_room(name: str, floor: int, size: float, house_id: str, type: RoomType) -> Room:
+        if not name or not house_id:
+            raise RoomError("Room name and house ID are required")
+        if floor < 0:
+            raise RoomError("Floor number cannot be negative")
+        if size <= 0:
+            raise RoomError("Room size must be positive")
+        if not isinstance(type, RoomType):
+            raise RoomError(f"Invalid room type: {type}")
         return Room(name, floor, size, house_id, type)
 
     @staticmethod
@@ -176,6 +221,10 @@ class RoomAPI:
 class DeviceAPI:
     @staticmethod
     def create_device(type: DeviceType, name: str, room_id: str) -> Device:
+        if not name or not room_id:
+            raise DeviceError("Device name and room ID are required")
+        if not isinstance(type, DeviceType):
+            raise DeviceError(f"Invalid device type: {type}")
         return Device(type, name, room_id)
 
     @staticmethod
@@ -200,10 +249,18 @@ class DeviceAPI:
 
     @staticmethod
     def update_device_settings(device_id: str, settings: Dict) -> bool:
+        if not device_id:
+            raise DeviceError("Device ID cannot be empty")
+        if not isinstance(settings, dict):
+            raise DeviceError("Settings must be a dictionary")
         # TODO: Implement settings update
         pass
 
     @staticmethod
     def update_device_status(device_id: str, status: bool) -> bool:
+        if not device_id:
+            raise DeviceError("Device ID cannot be empty")
+        if not isinstance(status, bool):
+            raise DeviceError("Status must be a boolean value")
         # TODO: Implement status update
         pass
