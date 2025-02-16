@@ -62,7 +62,7 @@ class TestUserAPI(unittest.TestCase):
         
         # Test successful retrieval
         result = UserAPI.get_user("test-id")
-        mock_logger.info.assert_any_call("Attempting to retrieve user with ID: test-id")
+        mock_logger.info.assert_called_with("Attempting to retrieve user with ID: test-id")
         
         # Test non-existent user
         result = UserAPI.get_user("non-existent-id")
@@ -334,7 +334,7 @@ class TestDeviceAPI(unittest.TestCase):
         
         with self.assertRaises(DeviceError):
             DeviceAPI.update_device_settings("device_id", "invalid_settings")
-        mock_logger.error.assert_called_with("Settings update failed: Invalid settings type: <class 'str'>")
+        mock_logger.error.assert_called_with("Error updating device settings: Settings must be a dictionary")
 
     @patch('shs_api.logger')
     def test_update_device_status_validation(self, mock_logger):
@@ -344,7 +344,7 @@ class TestDeviceAPI(unittest.TestCase):
         
         with self.assertRaises(DeviceError):
             DeviceAPI.update_device_status("device_id", "invalid_status")
-        mock_logger.error.assert_called_with("Status update failed: Invalid status type: <class 'str'>")
+        mock_logger.error.assert_called_with("Error updating device status: Status must be a boolean value")
 
 if __name__ == '__main__':
     unittest.main()
