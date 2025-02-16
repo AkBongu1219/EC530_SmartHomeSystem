@@ -21,6 +21,11 @@ Assignment implementation for BU EC530 Smart Home System API project.
 - Error handling and input validation
 - GitHub Actions for automated testing
 
+## Project Structure
+- `shs_api.py`: Core API implementations
+- `tests/tests_shs_api.py`: Unit tests
+- `.github/workflows/test.yml`: CI configuration
+
 ## Setup
 
 ```bash
@@ -29,13 +34,4 @@ pip install -r requirements.txt
 
 # Run tests
 python -m unittest discover tests/
-```
-
-## Project Structure
-- `shs_api.py`: Core API implementations
-- `tests/tests_shs_api.py`: Unit tests
-- `.github/workflows/python-app.yml`: CI configuration
-
-## Author
-Akhil Bongu
 ```
