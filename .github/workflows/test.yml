@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.11", "3.12"]
 
     steps:
     - uses: actions/checkout@v3
@@ -36,5 +36,17 @@ jobs:
     
     - name: Run tests with coverage
       run: |
+        mkdir -p logs
         coverage run -m unittest discover tests/
         coverage report
+    
+    - name: Archive log files
+      if: always()  # This ensures logs are saved even if tests fail
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-logs-python-${{ matrix.python-version }}
+        path: |
+          logs/
+          *.log
+          smart_home_system.log
+        retention-days: 7
