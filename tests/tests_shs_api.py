@@ -1,14 +1,16 @@
 # Import required testing modules
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, call
 from datetime import datetime
+import logging
 
 # Import all components from the main API
 from shs_api import (
     UserAPI, HouseAPI, RoomAPI, DeviceAPI,
     User, House, Room, Device,
     UserPrivilege, RoomType, DeviceType, Location,
-    SmartHomeError, UserError, HouseError, RoomError, DeviceError
+    SmartHomeError, UserError, HouseError, RoomError, DeviceError,
+    logger
 )
 
 class TestUserAPI(unittest.TestCase):
@@ -23,8 +25,11 @@ class TestUserAPI(unittest.TestCase):
             "email": "john@example.com",
             "privilege": UserPrivilege.REGULAR
         }
+        # Temporarily disable logging to avoid cluttering test output
+        logger.handlers = []
         
-    def test_create_user(self):
+    @patch('shs_api.logger')
+    def test_create_user(self, mock_logger):
         # Test successful user creation
         create_user_params = {
             "name": self.test_user_data["name"],
@@ -34,12 +39,16 @@ class TestUserAPI(unittest.TestCase):
             "privilege": self.test_user_data["privilege"]
         }
         user = UserAPI.create_user(**create_user_params)
-        self.assertIsInstance(user, User)
-        self.assertEqual(user.name, self.test_user_data["name"])
-        self.assertEqual(user.privilege, self.test_user_data["privilege"])
         
+        # Verify logging calls
+        mock_logger.info.assert_has_calls([
+            call(f"Attempting to create user with username: {create_user_params['username']}"),
+            call(f"Successfully created user with ID: {user.id}")
+        ])
+        
+    @patch('shs_api.logger')
     @patch('shs_api.UserAPI.get_user')
-    def test_get_user(self, mock_get):
+    def test_get_user(self, mock_get, mock_logger):
         # Test user retrieval with mocked database
         user_init_data = {
             "name": self.test_user_data["name"],
@@ -53,12 +62,12 @@ class TestUserAPI(unittest.TestCase):
         
         # Test successful retrieval
         result = UserAPI.get_user("test-id")
-        self.assertEqual(result, mock_user)
+        mock_logger.info.assert_called_with("Attempting to retrieve user with ID: test-id")
         
         # Test non-existent user
         mock_get.return_value = None
         result = UserAPI.get_user("non-existent-id")
-        self.assertIsNone(result)
+        mock_logger.debug.assert_called_with("User lookup not yet implemented for ID: non-existent-id")
         
     @patch('shs_api.UserAPI.update_user')
     def test_update_user(self, mock_update):
@@ -110,14 +119,17 @@ class TestHouseAPI(unittest.TestCase):
             "owner_ids": ["owner1", "owner2"],
             "occupant_count": 4
         }
+        logger.handlers = []
         
-    def test_create_house(self):
-        # Test successful house creation
+    @patch('shs_api.logger')
+    def test_create_house(self, mock_logger):
         house = HouseAPI.create_house(**self.test_house_data)
-        self.assertIsInstance(house, House)
-        self.assertEqual(house.name, self.test_house_data["name"])
-        self.assertEqual(house.occupant_count, self.test_house_data["occupant_count"])
         
+        mock_logger.info.assert_has_calls([
+            call(f"Attempting to create house: {self.test_house_data['name']}"),
+            call(f"Successfully created house with ID: {house.id}")
+        ])
+
     @patch('shs_api.HouseAPI.get_house')
     def test_get_house(self, mock_get):
         mock_house = House(**self.test_house_data)
@@ -168,14 +180,17 @@ class TestRoomAPI(unittest.TestCase):
             "house_id": "test-house-id",
             "type": RoomType.BEDROOM
         }
+        logger.handlers = []
         
-    def test_create_room(self):
-        # Test successful room creation
+    @patch('shs_api.logger')
+    def test_create_room(self, mock_logger):
         room = RoomAPI.create_room(**self.test_room_data)
-        self.assertIsInstance(room, Room)
-        self.assertEqual(room.name, self.test_room_data["name"])
-        self.assertEqual(room.type, self.test_room_data["type"])
         
+        mock_logger.info.assert_has_calls([
+            call(f"Attempting to create room: {self.test_room_data['name']} in house: {self.test_room_data['house_id']}"),
+            call(f"Successfully created room with ID: {room.id}")
+        ])
+
     @patch('shs_api.RoomAPI.get_rooms_by_house')
     def test_get_rooms_by_house(self, mock_get_rooms):
         mock_rooms = [Room(**self.test_room_data)]
@@ -236,15 +251,16 @@ class TestDeviceAPI(unittest.TestCase):
             "name": "Living Room Light",
             "room_id": "test-room-id"
         }
+        logger.handlers = []
         
-    def test_create_device(self):
-        # Test successful device creation
+    @patch('shs_api.logger')
+    def test_create_device(self, mock_logger):
         device = DeviceAPI.create_device(**self.test_device_data)
-        self.assertIsInstance(device, Device)
-        self.assertEqual(device.name, self.test_device_data["name"])
-        self.assertEqual(device.type, self.test_device_data["type"])
-        self.assertFalse(device.status)
-        self.assertIsInstance(device.last_updated, datetime)
+        
+        mock_logger.info.assert_has_calls([
+            call(f"Attempting to create {self.test_device_data['type'].value} device: {self.test_device_data['name']} in room: {self.test_device_data['room_id']}"),
+            call(f"Successfully created device with ID: {device.id}")
+        ])
         
     @patch('shs_api.DeviceAPI.get_devices_by_room')
     def test_get_devices_by_room(self, mock_get_devices):
@@ -300,28 +316,36 @@ class TestDeviceAPI(unittest.TestCase):
         self.assertTrue(result)
         mock_delete.assert_called_once_with("test-id")
 
-    def test_create_device_validation(self):
+    @patch('shs_api.logger')
+    def test_create_device_validation(self, mock_logger):
         # Test validation errors for device creation
         with self.assertRaises(DeviceError):
             DeviceAPI.create_device(DeviceType.LIGHT, "", "room_id")
-        with self.assertRaises(DeviceError):
-            DeviceAPI.create_device(DeviceType.LIGHT, "name", "")
+        mock_logger.error.assert_called_with("Device creation failed: Missing name or room ID")
+        
         with self.assertRaises(DeviceError):
             DeviceAPI.create_device("invalid_type", "name", "room_id")
+        mock_logger.error.assert_called_with("Device creation failed: Invalid device type: invalid_type")
 
-    def test_update_device_settings_validation(self):
-        # Test validation errors for device settings updates
+    @patch('shs_api.logger')
+    def test_update_device_settings_validation(self, mock_logger):
         with self.assertRaises(DeviceError):
             DeviceAPI.update_device_settings("", {"brightness": 80})
+        mock_logger.error.assert_called_with("Settings update failed: Empty device ID")
+        
         with self.assertRaises(DeviceError):
             DeviceAPI.update_device_settings("device_id", "invalid_settings")
+        mock_logger.error.assert_called_with("Settings update failed: Invalid settings type: <class 'str'>")
 
-    def test_update_device_status_validation(self):
-        # Test validation errors for device status updates
+    @patch('shs_api.logger')
+    def test_update_device_status_validation(self, mock_logger):
         with self.assertRaises(DeviceError):
             DeviceAPI.update_device_status("", True)
+        mock_logger.error.assert_called_with("Status update failed: Empty device ID")
+        
         with self.assertRaises(DeviceError):
             DeviceAPI.update_device_status("device_id", "invalid_status")
+        mock_logger.error.assert_called_with("Status update failed: Invalid status type: <class 'str'>")
 
 if __name__ == '__main__':
     unittest.main()

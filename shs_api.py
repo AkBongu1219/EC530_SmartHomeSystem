@@ -3,6 +3,24 @@ from enum import Enum
 from dataclasses import dataclass
 from datetime import datetime
 import uuid
+import logging
+
+# Configure logging
+logger = logging.getLogger('smart_home_system')
+logger.setLevel(logging.INFO)
+
+# Create handlers
+console_handler = logging.StreamHandler()
+file_handler = logging.FileHandler('smart_home_system.log')
+
+# Create formatters and add it to handlers
+log_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+console_handler.setFormatter(log_format)
+file_handler.setFormatter(log_format)
+
+# Add handlers to the logger
+logger.addHandler(console_handler)
+logger.addHandler(file_handler)
 
 # Base exception hierarchy for the system
 class SmartHomeError(Exception):
@@ -145,52 +163,97 @@ class UserAPI:
     """Handles user management operations"""
     @staticmethod
     def create_user(name: str, username: str, phone: str, email: str, privilege: UserPrivilege) -> User:
-        # Validate required fields
-        if not name or not username or not phone or not email:
-            raise UserError("All user fields (name, username, phone, email) are required")
-        if not isinstance(privilege, UserPrivilege):
-            raise UserError(f"Invalid privilege type: {privilege}")
-        return User(name, username, phone, email, privilege)
+        logger.info(f"Attempting to create user with username: {username}")
+        try:
+            if not name or not username or not phone or not email:
+                logger.error("User creation failed: Missing required fields")
+                raise UserError("All user fields (name, username, phone, email) are required")
+            if not isinstance(privilege, UserPrivilege):
+                logger.error(f"User creation failed: Invalid privilege type: {privilege}")
+                raise UserError(f"Invalid privilege type: {privilege}")
+            
+            user = User(name, username, phone, email, privilege)
+            logger.info(f"Successfully created user with ID: {user.id}")
+            return user
+        except Exception as e:
+            logger.error(f"Unexpected error during user creation: {str(e)}")
+            raise
 
     @staticmethod
     def get_user(user_id: str) -> Optional[User]:
-        # Validate user ID
-        if not user_id:
-            raise UserError("User ID cannot be empty")
-        # TODO: Implement database lookup
-        pass
+        logger.info(f"Attempting to retrieve user with ID: {user_id}")
+        try:
+            if not user_id:
+                logger.error("User retrieval failed: Empty user ID")
+                raise UserError("User ID cannot be empty")
+            # TODO: Implement database lookup
+            logger.debug(f"User lookup not yet implemented for ID: {user_id}")
+            return None
+        except Exception as e:
+            logger.error(f"Error retrieving user: {str(e)}")
+            raise
 
     @staticmethod
     def update_user(user: User) -> bool:
-        if not isinstance(user, User):
-            raise UserError("Invalid user object")
-        # TODO: Implement database update
-        pass
+        logger.info(f"Attempting to update user with ID: {user.id}")
+        try:
+            if not isinstance(user, User):
+                logger.error("User update failed: Invalid user object")
+                raise UserError("Invalid user object")
+            # TODO: Implement database update
+            logger.debug(f"User update not yet implemented for ID: {user.id}")
+            return True
+        except Exception as e:
+            logger.error(f"Error updating user: {str(e)}")
+            raise
 
     @staticmethod
     def delete_user(user_id: str) -> bool:
-        # TODO: Implement database deletion
-        pass
+        logger.info(f"Attempting to delete user with ID: {user_id}")
+        try:
+            # TODO: Implement database deletion
+            logger.debug(f"User deletion not yet implemented for ID: {user_id}")
+            return True
+        except Exception as e:
+            logger.error(f"Error deleting user: {str(e)}")
+            raise
 
 class HouseAPI:
     """Handles house management operations"""
     @staticmethod
     def create_house(name: str, address: str, location: Location, owner_ids: List[str], occupant_count: int) -> House:
-        # Validate house creation parameters
-        if not name or not address:
-            raise HouseError("House name and address are required")
-        if not isinstance(location, Location):
-            raise HouseError("Invalid location object")
-        if not owner_ids:
-            raise HouseError("At least one owner ID is required")
-        if occupant_count < 1:
-            raise HouseError("Occupant count must be positive")
-        return House(name, address, location, owner_ids, occupant_count)
+        logger.info(f"Attempting to create house: {name}")
+        try:
+            if not name or not address:
+                logger.error("House creation failed: Missing name or address")
+                raise HouseError("House name and address are required")
+            if not isinstance(location, Location):
+                logger.error("House creation failed: Invalid location object")
+                raise HouseError("Invalid location object")
+            if not owner_ids:
+                logger.error("House creation failed: No owner IDs provided")
+                raise HouseError("At least one owner ID is required")
+            if occupant_count < 1:
+                logger.error("House creation failed: Invalid occupant count")
+                raise HouseError("Occupant count must be positive")
+            
+            house = House(name, address, location, owner_ids, occupant_count)
+            logger.info(f"Successfully created house with ID: {house.id}")
+            return house
+        except Exception as e:
+            logger.error(f"Unexpected error during house creation: {str(e)}")
+            raise
 
     @staticmethod
     def get_house(house_id: str) -> Optional[House]:
-        # TODO: Implement database lookup
-        pass
+        logger.info(f"Attempting to retrieve house with ID: {house_id}")
+        try:
+            # TODO: Implement database lookup
+            logger.debug(f"House lookup not yet implemented for ID: {house_id}")
+            return None
+        except Exception as e:
+            logger.error(f"Error retrieving house: {str(e)}")
+            raise
 
     @staticmethod
     def update_house(house: House) -> bool:
@@ -205,15 +268,27 @@ class HouseAPI:
 class RoomAPI:
     @staticmethod
     def create_room(name: str, floor: int, size: float, house_id: str, type: RoomType) -> Room:
-        if not name or not house_id:
-            raise RoomError("Room name and house ID are required")
-        if floor < 0:
-            raise RoomError("Floor number cannot be negative")
-        if size <= 0:
-            raise RoomError("Room size must be positive")
-        if not isinstance(type, RoomType):
-            raise RoomError(f"Invalid room type: {type}")
-        return Room(name, floor, size, house_id, type)
+        logger.info(f"Attempting to create room: {name} in house: {house_id}")
+        try:
+            if not name or not house_id:
+                logger.error("Room creation failed: Missing name or house ID")
+                raise RoomError("Room name and house ID are required")
+            if floor < 0:
+                logger.error(f"Room creation failed: Invalid floor number: {floor}")
+                raise RoomError("Floor number cannot be negative")
+            if size <= 0:
+                logger.error(f"Room creation failed: Invalid size: {size}")
+                raise RoomError("Room size must be positive")
+            if not isinstance(type, RoomType):
+                logger.error(f"Room creation failed: Invalid room type: {type}")
+                raise RoomError(f"Invalid room type: {type}")
+            
+            room = Room(name, floor, size, house_id, type)
+            logger.info(f"Successfully created room with ID: {room.id}")
+            return room
+        except Exception as e:
+            logger.error(f"Unexpected error during room creation: {str(e)}")
+            raise
 
     @staticmethod
     def get_room(room_id: str) -> Optional[Room]:
@@ -222,8 +297,14 @@ class RoomAPI:
 
     @staticmethod
     def get_rooms_by_house(house_id: str) -> List[Room]:
-        # TODO: Implement database lookup
-        pass
+        logger.info(f"Attempting to retrieve rooms for house ID: {house_id}")
+        try:
+            # TODO: Implement database lookup
+            logger.debug(f"Room lookup not yet implemented for house ID: {house_id}")
+            return []
+        except Exception as e:
+            logger.error(f"Error retrieving rooms: {str(e)}")
+            raise
 
     @staticmethod
     def update_room(room: Room) -> bool:
@@ -239,12 +320,21 @@ class DeviceAPI:
     """Handles device management operations"""
     @staticmethod
     def create_device(type: DeviceType, name: str, room_id: str) -> Device:
-        # Validate device creation parameters
-        if not name or not room_id:
-            raise DeviceError("Device name and room ID are required")
-        if not isinstance(type, DeviceType):
-            raise DeviceError(f"Invalid device type: {type}")
-        return Device(type, name, room_id)
+        logger.info(f"Attempting to create {type.value} device: {name} in room: {room_id}")
+        try:
+            if not name or not room_id:
+                logger.error("Device creation failed: Missing name or room ID")
+                raise DeviceError("Device name and room ID are required")
+            if not isinstance(type, DeviceType):
+                logger.error(f"Device creation failed: Invalid device type: {type}")
+                raise DeviceError(f"Invalid device type: {type}")
+            
+            device = Device(type, name, room_id)
+            logger.info(f"Successfully created device with ID: {device.id}")
+            return device
+        except Exception as e:
+            logger.error(f"Unexpected error during device creation: {str(e)}")
+            raise
 
     @staticmethod
     def get_device(device_id: str) -> Optional[Device]:
@@ -268,20 +358,36 @@ class DeviceAPI:
 
     @staticmethod
     def update_device_settings(device_id: str, settings: Dict) -> bool:
-        # Validate settings update parameters
-        if not device_id:
-            raise DeviceError("Device ID cannot be empty")
-        if not isinstance(settings, dict):
-            raise DeviceError("Settings must be a dictionary")
-        # TODO: Implement settings update
-        pass
+        logger.info(f"Attempting to update settings for device ID: {device_id}")
+        try:
+            if not device_id:
+                logger.error("Settings update failed: Empty device ID")
+                raise DeviceError("Device ID cannot be empty")
+            if not isinstance(settings, dict):
+                logger.error(f"Settings update failed: Invalid settings type: {type(settings)}")
+                raise DeviceError("Settings must be a dictionary")
+            
+            # TODO: Implement settings update
+            logger.debug(f"Settings update not yet implemented for device ID: {device_id}")
+            return True
+        except Exception as e:
+            logger.error(f"Error updating device settings: {str(e)}")
+            raise
 
     @staticmethod
     def update_device_status(device_id: str, status: bool) -> bool:
-        # Validate status update parameters
-        if not device_id:
-            raise DeviceError("Device ID cannot be empty")
-        if not isinstance(status, bool):
-            raise DeviceError("Status must be a boolean value")
-        # TODO: Implement status update
-        pass
+        logger.info(f"Attempting to update status for device ID: {device_id} to: {status}")
+        try:
+            if not device_id:
+                logger.error("Status update failed: Empty device ID")
+                raise DeviceError("Device ID cannot be empty")
+            if not isinstance(status, bool):
+                logger.error(f"Status update failed: Invalid status type: {type(status)}")
+                raise DeviceError("Status must be a boolean value")
+            
+            # TODO: Implement status update
+            logger.debug(f"Status update not yet implemented for device ID: {device_id}")
+            return True
+        except Exception as e:
+            logger.error(f"Error updating device status: {str(e)}")
+            raise
