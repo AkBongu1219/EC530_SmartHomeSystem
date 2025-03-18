@@ -24,7 +24,6 @@ class House(Base):
     id = Column(String, primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
     name = Column(String, nullable=False)
     address = Column(String, nullable=False)
-    # Instead of a Location dataclass, we store latitude and longitude as separate columns
     latitude = Column(Float, nullable=False)
     longitude = Column(Float, nullable=False)
     # Owner IDs stored as a JSON array (list of strings)
@@ -40,8 +39,8 @@ class Room(Base):
     id = Column(String, primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
     name = Column(String, nullable=False)
     floor = Column(Integer, nullable=False)
-    size = Column(Float, nullable=False)  # e.g., in square meters
-    house_id = Column(String, nullable=False)  # For simplicity; you could add a ForeignKey constraint here
+    size = Column(Float, nullable=False)  
+    house_id = Column(String, nullable=False)  
     type = Column(String, nullable=False)  # Room type stored as string (e.g., "bedroom", "kitchen")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
@@ -53,7 +52,7 @@ class Device(Base):
     id = Column(String, primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
     type = Column(String, nullable=False)  # Device type as string (e.g., "light", "thermostat")
     name = Column(String, nullable=False)
-    room_id = Column(String, nullable=False)  # For simplicity; consider using a ForeignKey constraint
+    room_id = Column(String, nullable=False)  
     settings = Column(JSON, nullable=False, default=dict)  # Device settings stored as JSON
     status = Column(Boolean, nullable=False, default=False)
     last_data = Column(JSON, nullable=False, default=dict)  # Stores the last received data from the device

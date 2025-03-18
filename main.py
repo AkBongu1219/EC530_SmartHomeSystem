@@ -23,7 +23,6 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     try:
         # Convert the string to the actual UserPrivilege enum
         privilege_enum = UserPrivilege(user.privilege)
-        # Use your business logic to create a user object
         new_user = UserAPI.create_user(
             user.name,
             user.username,
@@ -34,8 +33,6 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     
-    # Persist the user into the database using the SQLAlchemy model.
-    # Convert the enum to its string value (e.g., "admin") for storage.
     db_user = models.User(
         name=new_user.name,
         username=new_user.username,
@@ -62,7 +59,6 @@ def update_user(user_id: str, updated_data: schemas.UserCreate, db: Session = De
         raise HTTPException(status_code=404, detail="User not found")
 
     try:
-        # Convert the string privilege to the enum and then store its value (string)
         privilege_enum = UserPrivilege(updated_data.privilege)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -93,12 +89,10 @@ def delete_user(user_id: str, db: Session = Depends(get_db)):
 @app.post("/houses/", response_model=schemas.HouseResponse)
 def create_house(house: schemas.HouseCreate, db: Session = Depends(get_db)):
     try:
-        # Create a Location object required by the business logic
         loc = Location(latitude=house.latitude, longitude=house.longitude)
         new_house = HouseAPI.create_house(house.name, house.address, loc, house.owner_ids, house.occupant_count)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-    # Persist the house using the SQLAlchemy model
     db_house = models.House(
         name=new_house.name,
         address=new_house.address,
@@ -135,7 +129,6 @@ def update_house(house_id: str, house_update: schemas.HouseCreate, db: Session =
     if not db_house:
         raise HTTPException(status_code=404, detail="House not found")
     
-    # Update fields from the payload
     db_house.name = house_update.name
     db_house.address = house_update.address
     db_house.latitude = house_update.latitude
@@ -171,9 +164,6 @@ def create_room(room: schemas.RoomCreate, db: Session = Depends(get_db)):
         new_room = RoomAPI.create_room(room.name, room.floor, room.size, room.house_id, room_type)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-    # Persist the room using the SQLAlchemy model.
-    # Note: Your business logic returns an object whose type is different from your DB model.
-    # Here we create the DB record with the necessary fields.
     db_room = models.Room(
         name=new_room.name,
         floor=new_room.floor,
@@ -213,7 +203,7 @@ def update_room(room_id: str, room_update: schemas.RoomCreate, db: Session = Dep
     db_room.floor = room_update.floor
     db_room.size = room_update.size
     db_room.house_id = room_update.house_id
-    db_room.type = room_update.type  # Assuming your model stores type as a string
+    db_room.type = room_update.type  
 
     db.commit()
     db.refresh(db_room)
@@ -238,23 +228,20 @@ def delete_room(room_id: str, db: Session = Depends(get_db)):
 @app.post("/devices/", response_model=schemas.DeviceResponse)
 def create_device(device: schemas.DeviceCreate, db: Session = Depends(get_db)):
     try:
-        # Convert the device type from string to enum for business logic
         device_type = DeviceType(device.type)
         new_device = DeviceAPI.create_device(device_type, device.name, device.room_id)
-        # Optionally update settings if provided
         new_device.settings = device.settings or {}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-    # Persist the device using the SQLAlchemy model
+
     db_device = models.Device(
-        type=new_device.type.value,  # Save enum as string
+        type=new_device.type.value,  
         name=new_device.name,
         room_id=new_device.room_id,
         settings=new_device.settings,
         status=new_device.status,
         last_data=new_device.last_data,
         last_updated=new_device.last_updated
-        # created_at and updated_at are automatically handled by SQLAlchemy defaults
     )
     db.add(db_device)
     db.commit()
@@ -287,11 +274,11 @@ def update_device(device_id: str, device_update: schemas.DeviceCreate, db: Sessi
         except Exception as e:
             raise HTTPException(status_code=400, detail="Invalid device type")
     
-    # Update fields: store the enum's value (string) in the database.
+    
     db_device.type = device_type_enum.value
     db_device.name = device_update.name
     db_device.room_id = device_update.room_id
-    db_device.settings = device_update.settings  # Assuming settings is a dictionary
+    db_device.settings = device_update.settings  
     
     db.commit()
     db.refresh(db_device)
