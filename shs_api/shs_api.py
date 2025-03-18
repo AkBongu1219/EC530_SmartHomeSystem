@@ -37,15 +37,15 @@ class RoomType(Enum):
     BEDROOM = "bedroom"
     BATHROOM = "bathroom"
     KITCHEN = "kitchen"
-    LIVING_ROOM = "living_room"
+    LIVING_ROOM = "living room"
     OTHER = "other"
 
 class DeviceType(Enum):
     """Defines supported device types"""
     LIGHT = "light"
     THERMOSTAT = "thermostat"
-    SECURITY_CAMERA = "security_camera"
-    DOOR_LOCK = "door_lock"
+    SECURITY_CAMERA = "security camera"
+    DOOR_LOCK = "door lock"
     OTHER = "other"
 
 # Core data structures
@@ -155,23 +155,6 @@ class UserAPI:
         
         return User(name, username, phone, email, privilege)
 
-    @staticmethod
-    def get_user(user_id: str) -> Optional[User]:
-        if not user_id:
-            raise UserError("User ID cannot be empty")
-        return None
-
-    @staticmethod
-    def update_user(user: User) -> bool:
-        if not isinstance(user, User):
-            raise UserError("Invalid user object")
-        return True
-
-    @staticmethod
-    def delete_user(user_id: str) -> bool:
-        if not user_id:
-            raise UserError("User ID cannot be empty")
-        return True
 
 class HouseAPI:
     """Handles house management operations"""
@@ -188,21 +171,6 @@ class HouseAPI:
         
         return House(name, address, location, owner_ids, occupant_count)
 
-    @staticmethod
-    def get_house(house_id: str) -> Optional[House]:
-        if not house_id:
-            raise HouseError("House ID cannot be empty")
-        return None
-
-    @staticmethod
-    def update_house(house: House) -> bool:
-        # TODO: Implement database update
-        pass
-
-    @staticmethod
-    def delete_house(house_id: str) -> bool:
-        # TODO: Implement database deletion
-        pass
 
 class RoomAPI:
     @staticmethod
@@ -218,26 +186,6 @@ class RoomAPI:
         
         return Room(name, floor, size, house_id, type)
 
-    @staticmethod
-    def get_room(room_id: str) -> Optional[Room]:
-        # TODO: Implement database lookup
-        pass
-
-    @staticmethod
-    def get_rooms_by_house(house_id: str) -> List[Room]:
-        if not house_id:
-            raise RoomError("House ID cannot be empty")
-        return []
-
-    @staticmethod
-    def update_room(room: Room) -> bool:
-        # TODO: Implement database update
-        pass
-
-    @staticmethod
-    def delete_room(room_id: str) -> bool:
-        # TODO: Implement database deletion
-        pass
 
 class DeviceAPI:
     """Handles device management operations"""
@@ -250,38 +198,4 @@ class DeviceAPI:
         
         return Device(type, name, room_id)
 
-    @staticmethod
-    def get_device(device_id: str) -> Optional[Device]:
-        # TODO: Implement database lookup
-        pass
 
-    @staticmethod
-    def get_devices_by_room(room_id: str) -> List[Device]:
-        # TODO: Implement database lookup
-        pass
-
-    @staticmethod
-    def update_device(device: Device) -> bool:
-        # TODO: Implement database update
-        pass
-
-    @staticmethod
-    def delete_device(device_id: str) -> bool:
-        # TODO: Implement database deletion
-        pass
-
-    @staticmethod
-    def update_device_settings(device_id: str, settings: Dict) -> bool:
-        if not device_id:
-            raise DeviceError("Device ID cannot be empty")
-        if not isinstance(settings, dict):
-            raise DeviceError("Settings must be a dictionary")
-        return True
-
-    @staticmethod
-    def update_device_status(device_id: str, status: bool) -> bool:
-        if not device_id:
-            raise DeviceError("Device ID cannot be empty")
-        if not isinstance(status, bool):
-            raise DeviceError("Status must be a boolean value")
-        return True

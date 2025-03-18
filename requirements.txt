@@ -1,3 +1,17 @@
+# API Framework & Server
+fastapi>=0.95.1
+uvicorn>=0.22.0
+
+# Database & ORM
+sqlalchemy>=1.4.46
+alembic>=1.9.0
+
+# Data Validation
+pydantic>=1.10.2
+
+# Environment Variables
+python-dotenv>=1.0.0
+
 # Testing and Coverage
 coverage>=7.4.0
 pytest>=7.4.0
@@ -9,10 +23,11 @@ pylint>=3.0.0
 # Type Checking
 mypy>=1.8.0
 
-# Project Dependencies
+# Additional Utilities
 python-dateutil>=2.8.2
 typing-extensions>=4.9.0
 
 # Development Tools
 build>=1.0.3
-twine>=4.0.2 
+twine>=4.0.2
+httpx>=0.24.0
